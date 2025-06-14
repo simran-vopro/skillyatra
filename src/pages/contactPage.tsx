@@ -145,7 +145,7 @@ const ContactPage = () => {
                 tAlign="text-left"
                 heading={
                   <>
-                    Send a — <span className="span-word">Quote.</span>
+                    Send a — <span className="span-word">Query.</span>
                   </>
                 }
                 description="Fill out the form below and we will get back to you as soon as possible."
@@ -157,7 +157,7 @@ const ContactPage = () => {
                     <strong>Address:</strong> 2713 Lowe Haven
                   </div>
                   <div>
-                    <strong>Email:</strong> hi@studio.com
+                    <strong>Email:</strong> hi@skillyatra.com
                   </div>
                   <div>
                     <strong>Phone:</strong> 071-246-3165
@@ -245,7 +245,7 @@ const ContactPage = () => {
                   <OrangeOutlineButton
                     onClick={() => console.log("submitted")}
                     className="mt-10"
-                    label="Send Quote"
+                    label="Contact Us"
                     icon={<ArrowRight className="w-4 h-4" />}
                   />
                 </div>
@@ -256,10 +256,10 @@ const ContactPage = () => {
             <div className="mt-8 text-sm text-gray-500 space-y-1">
               <p className="font-semibold">Follow us</p>
               <div className="flex flex-wrap gap-4">
-                <span>Facebook /studio</span>
-                <span>Twitter /studio</span>
-                <span>Instagram /studio</span>
-                <span>LinkedIn /studio</span>
+                <span>Facebook /skillyatra</span>
+                <span>Twitter /skillyatra</span>
+                <span>Instagram /skillyatra</span>
+                <span>LinkedIn /skillyatra</span>
               </div>
             </div>
           </div>
