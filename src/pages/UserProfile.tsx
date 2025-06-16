@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 const CourseCard = ({ course }: { course: any }) => {
   const navigate = useNavigate();
   return (
-    <div onClick={() => navigate("/singleCourseBeforeLogin")} className="cursor-pointer border rounded-lg p-4 shadow-sm bg-white">
+    <div onClick={() => navigate("/course/1")} className="cursor-pointer border rounded-lg p-4 shadow-sm bg-white">
       <img
         src={course.image}
         alt={course.title}
