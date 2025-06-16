@@ -41,7 +41,7 @@ const CartPage = () => {
           ) : (
             cartItems.map((item) => (
               <div
-                 onClick={() => navigate(`/course/${item._id}`)}
+                 onClick={() => navigate(`/singleCourseBeforeLogin`)}
                 key={item._id}
                 className="flex items-center border border-gray-200 rounded-lg p-4 mb-4 gap-4 relative"
               >
@@ -74,7 +74,7 @@ const CartPage = () => {
 
           <div className="mt-4">
             <div
-              onClick={() => navigate("/courses")}
+              onClick={() => navigate("/")}
               className="text-indigo-600 hover:underline text-sm cursor-pointer"
             >
               ← Continue Learning
