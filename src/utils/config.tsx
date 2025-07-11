@@ -6,7 +6,7 @@ export const API_PATHS = {
   LOGIN: `${BASE_URL}/api/auth/login`,
 
   COURSES: `${BASE_URL}/api/course`,
-  COURSE_DETAIL: `${BASE_URL}/api/course/detail`,
+  COURSE_DETAIL: `${BASE_URL}/api/course/beforeDetail`,
 
   CATEGORIES: `${BASE_URL}/api/category`,
   PRODUCTS: `${BASE_URL}/api/products`,

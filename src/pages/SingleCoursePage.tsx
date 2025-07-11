@@ -7,7 +7,7 @@ import { API_PATHS, IMAGE_URL } from "../utils/config";
 import type { Course } from "../types/course";
 import moment from "moment";
 
-const AccordionItem = ({ section, lectures, duration, items, navigate }: any) => {
+const AccordionItem = ({ section, lectures, items }: any) => {
   const [open, setOpen] = useState(false);
 
   // const handleQuizNavigation = () => {
@@ -24,7 +24,7 @@ const AccordionItem = ({ section, lectures, duration, items, navigate }: any) =>
         <div className="font-medium">
           {section}{" "}
           <span className="text-sm text-gray-500">
-            • {lectures} lectures • {duration}
+            • {lectures} lectures
           </span>
         </div>
         {open ? (
@@ -39,31 +39,13 @@ const AccordionItem = ({ section, lectures, duration, items, navigate }: any) =>
           <ul className="space-y-2">
             {items.map((item: any, index: number) => (
               <li key={index} className="flex justify-between">
-                <span>{item.title}</span>
-                <span>{item.time}</span>
+                <span>{index + 1} . {item.title}</span>
+                {/* <span>{item.time}</span> */}
               </li>
             ))}
           </ul>
 
-          {/* Divider */}
-          {/* <div className="flex items-center my-3">
-            <hr className="flex-grow border-gray-300" />
-            <span className="px-2 text-xs text-gray-400">Quiz</span>
-            <hr className="flex-grow border-gray-300" />
-          </div> */}
 
-          {/* Quiz Button */}
-          {/* <div className="text-center">
-            <p className="text-sm text-gray-600 mb-2">
-              Ready to test your understanding of this module?
-            </p>
-            <button
-              onClick={handleQuizNavigation}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-2 px-4 rounded-md transition"
-            >
-              Take Module Quiz
-            </button>
-          </div> */}
         </div>
       )}
     </div>
@@ -86,6 +68,8 @@ const SingleCoursePage = () => {
     method: "get",
   });
 
+  console.log("courseData ", courseData)
+
   useEffect(() => {
     if (!courseDefaultLoading) {
       setCourse(courseData);
@@ -100,10 +84,6 @@ const SingleCoursePage = () => {
     0
   );
 
-  // Optional: If each chapter has an estimated 5 minutes duration
-  const estimatedMinutes = totalChapters * 5;
-  const hours = Math.floor(estimatedMinutes / 60);
-  const minutes = estimatedMinutes % 60;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -170,25 +150,7 @@ const SingleCoursePage = () => {
           <div className="list-disc pl-6 space-y-2 text-gray-700" dangerouslySetInnerHTML={{ __html: course?.whatYouLearn || '' }} />
 
 
-          {/* <ul className="list-disc pl-6 space-y-2 text-gray-700">
-            <li>
-              Write your own cipher decryption algorithm using genetic
-              algorithms and language modeling with Markov models
-            </li>
-            <li>Write your own spam detection code in Python</li>
-            <li>Write your own sentiment analysis code in Python</li>
-            <li>
-              Perform latent semantic analysis or latent semantic indexing in
-              Python
-            </li>
-            <li>
-              Have an idea of how to write your own article spinner in Python
-            </li>
-            <li>
-              Understand important foundations for OpenAI ChatGPT, GPT-4,
-              DALL-E, Midjourney, and Stable Diffusion
-            </li>
-          </ul> */}
+
         </div>
 
         {/* This Course Includes */}
@@ -201,15 +163,14 @@ const SingleCoursePage = () => {
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-4">Course content</h2>
           <p className="text-gray-700 mb-4">
-            {totalModules} modules • {totalChapters} chapters • {hours}h {minutes}m total length
+            {totalModules} modules • {totalChapters} chapters
           </p>
 
           {course?.modules?.map((module, index) => {
             const lectures = module.chapters.length;
-            const duration = `${lectures * 5} mins`; // or calculate actual time if you have it
+         
             const items = module.chapters.map((chapter) => ({
               title: chapter.title,
-              time: "5 mins", // optional: use real duration if available
             }));
 
             return (
@@ -217,7 +178,6 @@ const SingleCoursePage = () => {
                 key={index}
                 section={module.name}
                 lectures={lectures}
-                duration={duration}
                 items={items}
                 navigate={navigate}
               />
