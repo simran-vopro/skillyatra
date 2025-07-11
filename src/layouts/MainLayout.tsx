@@ -1,8 +1,8 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-// import pages here
+// import pages
 import HomePage from "../pages/HomePage";
 import AboutPage from "../pages/AboutPage";
 import CartPage from "../pages/cartPage";
@@ -16,30 +16,77 @@ import OtpVerificationPage from "../pages/OtpVerificationPage";
 import SingleCoursePage from "../pages/SingleCoursePage";
 import QuizPage from "../pages/QuizPage";
 import CourseLearningPage from "../pages/CourseLearningPage";
+import { useAuth } from "../hooks/useAuth";
 
 function MainLayout() {
+  interface Props {
+    children: React.ReactNode;
+  }
+
+  function PrivateRoute({ children }: Props) {
+    const { token } = useAuth();
+    if (!token) {
+      return <Navigate to="/login" replace />;
+    }
+    return children;
+  }
+
   return (
     <div className="min-h-screen">
       <Header />
       <main className="flex-grow mx-auto relative">
         <ScrollToTop />
         <Routes>
+          {/* public routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
-         
-          <Route path="/cart" element={<CartPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<SignupPage />} />
-          <Route path="/account" element={<UserProfile />} />
-          <Route path="/verify" element={<OtpVerificationPage />} />
           <Route path="/singleCourseBeforeLogin" element={<SingleCoursePage />} />
-          <Route path="/quiz/:moduleId" element={<QuizPage />} />
-          <Route path="/course/:id" element={<CourseLearningPage />} />
-
-
-         
           <Route path="/terms" element={<TermsPage />} />
+
+          {/* private routes */}
+          <Route
+            path="/cart"
+            element={
+              <PrivateRoute>
+                <CartPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/account"
+            element={
+              <PrivateRoute>
+                <UserProfile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/verify"
+            element={
+              <PrivateRoute>
+                <OtpVerificationPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/quiz/:moduleId"
+            element={
+              <PrivateRoute>
+                <QuizPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/course/:id"
+            element={
+              <PrivateRoute>
+                <CourseLearningPage />
+              </PrivateRoute>
+            }
+          />
         </Routes>
       </main>
       <Footer />

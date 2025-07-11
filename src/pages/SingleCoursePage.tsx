@@ -1,15 +1,19 @@
 import { Star, ChevronDown, ChevronUp } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import OrangeOutlineButton from "../components/Button/OrangeOutlineButton";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAxios } from "../hooks/useAxios";
+import { API_PATHS, IMAGE_URL } from "../utils/config";
+import type { Course } from "../types/course";
+import moment from "moment";
 
 const AccordionItem = ({ section, lectures, duration, items, navigate }: any) => {
   const [open, setOpen] = useState(false);
-  const handleQuizNavigation = () => {
-    console.log("Navigating to quiz for:", section);
-    navigate("/quiz/1"); // Replace with actual quiz route
-    // You can replace with routing logic later
-  };
+
+  // const handleQuizNavigation = () => {
+  //   console.log("Navigating to quiz for:", section);
+  //   navigate("/quiz/1");
+  // };
 
   return (
     <div className="border rounded-lg overflow-hidden mb-4">
@@ -42,14 +46,14 @@ const AccordionItem = ({ section, lectures, duration, items, navigate }: any) =>
           </ul>
 
           {/* Divider */}
-          <div className="flex items-center my-3">
+          {/* <div className="flex items-center my-3">
             <hr className="flex-grow border-gray-300" />
             <span className="px-2 text-xs text-gray-400">Quiz</span>
             <hr className="flex-grow border-gray-300" />
-          </div>
+          </div> */}
 
           {/* Quiz Button */}
-          <div className="text-center">
+          {/* <div className="text-center">
             <p className="text-sm text-gray-600 mb-2">
               Ready to test your understanding of this module?
             </p>
@@ -59,7 +63,7 @@ const AccordionItem = ({ section, lectures, duration, items, navigate }: any) =>
             >
               Take Module Quiz
             </button>
-          </div>
+          </div> */}
         </div>
       )}
     </div>
@@ -67,30 +71,39 @@ const AccordionItem = ({ section, lectures, duration, items, navigate }: any) =>
 };
 
 const SingleCoursePage = () => {
-  const courseContent = [
-    {
-      section: "Natural Language Processing - What is it used for?",
-      lectures: 3,
-      duration: "22min",
-      items: [
-        { title: "Introduction and Outline", time: "07:48" },
-        { title: "Why Learn NLP?", time: "05:59" },
-        { title: "The Central Message of this Course", time: "08:12" },
-      ],
-    },
-    {
-      section: "Course Preparation",
-      lectures: 3,
-      duration: "17min",
-      items: [
-        { title: "Installing Python", time: "05:00" },
-        { title: "Setting up environment", time: "06:00" },
-        { title: "Installing libraries", time: "06:00" },
-      ],
-    },
-  ];
+
+
+  const location = useLocation();
+  const { courseId } = location.state || {};
+
+  const [course, setCourse] = useState<Course>();
+
+  const {
+    data: courseData,
+    loading: courseDefaultLoading
+  } = useAxios({
+    url: courseId ? `${API_PATHS.COURSE_DETAIL}/${courseId}` : "",
+    method: "get",
+  });
+
+  useEffect(() => {
+    if (!courseDefaultLoading) {
+      setCourse(courseData);
+    }
+  }, [courseData, courseDefaultLoading]);
 
   const navigate = useNavigate();
+  const modules = course?.modules || [];
+  const totalModules = modules.length;
+  const totalChapters = modules.reduce(
+    (acc, mod) => acc + (mod.chapters?.length || 0),
+    0
+  );
+
+  // Optional: If each chapter has an estimated 5 minutes duration
+  const estimatedMinutes = totalChapters * 5;
+  const hours = Math.floor(estimatedMinutes / 60);
+  const minutes = estimatedMinutes % 60;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -98,25 +111,24 @@ const SingleCoursePage = () => {
       <div className="lg:col-span-2">
         {/* Header Info */}
         <div className="mb-6">
-          <p className="text-sm text-gray-500">
-            Development &gt; Data Science &gt; Python
+          <p className="text-sm text-gray-500 capitalize">
+            {course?.category.name}
           </p>
-          <h1 className="text-3xl font-bold text-gray-800 mt-2">
-            Data Science: Natural Language Processing (NLP) in Python
+          <h1 className="text-3xl font-bold text-gray-800 mt-2 capitalize">
+            {course?.title}
           </h1>
           <p className="mt-2 text-gray-600">
-            Applications: decrypting ciphers, spam detection, sentiment
-            analysis, article spinners, and latent semantic analysis.
+            {course?.description}
           </p>
 
           <div className="mt-4 text-sm text-gray-500 space-y-1">
             <p>
               Created by{" "}
               <span className="text-purple-600 font-medium">
-                Instructor Name
+                {course?.instructor.firstName}  {course?.instructor.lastName}
               </span>
             </p>
-            <p>Last updated 6/2025 • English • English [Auto], German [Auto]</p>
+            <p>Last updated {moment(course?.updatedAt).format("MMMM YYYY")} • {course?.language}</p>
           </div>
 
           <div className="mt-6 bg-yellow-50 border border-yellow-200 p-4 rounded-md">
@@ -154,7 +166,11 @@ const SingleCoursePage = () => {
         {/* What You'll Learn */}
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-4">What you'll learn</h2>
-          <ul className="list-disc pl-6 space-y-2 text-gray-700">
+
+          <div className="list-disc pl-6 space-y-2 text-gray-700" dangerouslySetInnerHTML={{ __html: course?.whatYouLearn || '' }} />
+
+
+          {/* <ul className="list-disc pl-6 space-y-2 text-gray-700">
             <li>
               Write your own cipher decryption algorithm using genetic
               algorithms and language modeling with Markov models
@@ -172,52 +188,48 @@ const SingleCoursePage = () => {
               Understand important foundations for OpenAI ChatGPT, GPT-4,
               DALL-E, Midjourney, and Stable Diffusion
             </li>
-          </ul>
+          </ul> */}
         </div>
 
         {/* This Course Includes */}
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-4">This course includes:</h2>
-          <ul className="list-disc pl-6 space-y-2 text-gray-700">
-            <li>12 hours on-demand video</li>
-            <li>Access on mobile and TV</li>
-            <li>Certificate of completion</li>
-          </ul>
+          <div className="list-disc pl-6 space-y-2 text-gray-700" dangerouslySetInnerHTML={{ __html: course?.courseInclude || '' }} />
         </div>
 
         {/* Accordion Course Content */}
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-4">Course content</h2>
           <p className="text-gray-700 mb-4">
-            16 sections • 90 lectures • 11h 55m total length
+            {totalModules} modules • {totalChapters} chapters • {hours}h {minutes}m total length
           </p>
-          {courseContent.map((section, index) => (
-            <AccordionItem key={index} navigate={navigate} {...section} />
-          ))}
+
+          {course?.modules?.map((module, index) => {
+            const lectures = module.chapters.length;
+            const duration = `${lectures * 5} mins`; // or calculate actual time if you have it
+            const items = module.chapters.map((chapter) => ({
+              title: chapter.title,
+              time: "5 mins", // optional: use real duration if available
+            }));
+
+            return (
+              <AccordionItem
+                key={index}
+                section={module.name}
+                lectures={lectures}
+                duration={duration}
+                items={items}
+                navigate={navigate}
+              />
+            );
+          })}
         </div>
 
         {/* Who This Course is For */}
         <div className="mt-12 mb-20">
           <h2 className="text-2xl font-bold mb-4">Who this course is for:</h2>
-          <ul className="list-disc pl-6 space-y-2 text-gray-700">
-            <li>Students who are comfortable writing Python code</li>
-            <li>
-              Students who want to learn more about machine learning but don't
-              want to do a lot of math
-            </li>
-            <li>
-              Professionals who are interested in applying NLP to real-world
-              problems
-            </li>
-            <li>
-              This course is NOT for those who find the tasks and methods listed
-              too basic
-            </li>
-            <li>
-              This course is NOT for those who don’t understand basic ML and
-              Python (take the free Numpy course first)
-            </li>
-          </ul>
+          <div className="list-disc pl-6 space-y-2 text-gray-700" dangerouslySetInnerHTML={{ __html: course?.audience || '' }} />
+
         </div>
       </div>
 
@@ -225,42 +237,29 @@ const SingleCoursePage = () => {
       <aside className="hidden lg:block">
         {/* Description */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-4">Description</h2>
-          <p className="text-gray-700 leading-7">
-            Ever wondered how AI technologies like OpenAI ChatGPT, GPT-4,
-            DALL-E, Midjourney, and Stable Diffusion really work? In this
-            course, you will learn the foundations of these groundbreaking
-            applications...
-            <span onClick={() => navigate("/register")} className="text-purple-600 cursor-pointer ml-2">
-              Show more
-            </span>
-          </p>
+          {/* <h2 className="text-2xl font-bold mb-4">Description</h2> */}
+
+          <img
+            src={(typeof course?.thumbnail === "string" && course?.thumbnail.startsWith("/upload")) ? IMAGE_URL + course?.thumbnail : course?.thumbnail}
+            className="img-fluid w-full rounded-top"
+            alt=""
+          />
+
+
         </div>
 
         {/* Requirements */}
         <div className="my-12">
           <h2 className="text-2xl font-bold mb-4">Requirements</h2>
-          <ul className="list-disc pl-6 space-y-2 text-gray-700">
-            <li>Install Python, it's free!</li>
-            <li>
-              You should be at least somewhat comfortable writing Python code
-            </li>
-            <li>
-              Know how to install numerical libraries for Python such as Numpy,
-              Scipy, Scikit-learn, Matplotlib, and BeautifulSoup
-            </li>
-            <li>
-              Take my free Numpy prerequisites course (it's FREE, no excuses!)
-            </li>
-            <li>Optional: linear algebra and probability are helpful</li>
-          </ul>
+          <div className="list-disc pl-6 space-y-2 text-gray-700" dangerouslySetInnerHTML={{ __html: course?.requirements || '' }} />
+
         </div>
 
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <div className="relative pb-[56.25%]">
             <iframe
               className="absolute top-0 left-0 w-full h-full"
-              src="https://www.youtube.com/embed/tgbNymZ7vqY"
+              src={course?.promoVideo}
               title="Course Preview"
               allowFullScreen
             ></iframe>
@@ -304,7 +303,7 @@ const SingleCoursePage = () => {
             <hr className="flex-grow border-gray-300" />
           </div>
 
-          <p className="text-2xl font-semibold text-gray-800 mb-3">$3,119</p>
+          <p className="text-2xl font-semibold text-gray-800 mb-3">${course?.pricing}</p>
 
           <button onClick={() => navigate("/cart")} className="w-full border border-purple-600 text-purple-600 font-semibold py-2 text-sm rounded-md hover:bg-purple-50 transition">
             Add to cart
@@ -315,7 +314,7 @@ const SingleCoursePage = () => {
         </div>
 
         {/* Quiz Section */}
-        <div className="bg-white border rounded-lg shadow p-4 mt-6">
+        {/* <div className="bg-white border rounded-lg shadow p-4 mt-6">
           <h3 className="text-base font-semibold mb-1 text-gray-800">
             Test Your Knowledge
           </h3>
@@ -327,7 +326,7 @@ const SingleCoursePage = () => {
           <button onClick={() => navigate("/quiz/1")} className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 rounded-md transition">
             Take Quiz
           </button>
-        </div>
+        </div> */}
       </aside>
     </div>
   );

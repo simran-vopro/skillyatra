@@ -4,6 +4,7 @@ import { Search, User, ChevronDown, X } from "lucide-react";
 
 import clsx from "clsx";
 import OrangeOutlineButton from "./Button/OrangeOutlineButton";
+import { useAuth } from "../hooks/useAuth";
 
 const Header = () => {
   const { pathname } = useLocation();
@@ -26,7 +27,6 @@ const Header = () => {
     { name: "About", path: "/" },
     { name: "Explore", path: "/" },
     { name: "Cart", path: "/cart" },
-
     // {
     //   name: "Shop",
     //   dropdown: true,
@@ -59,6 +59,8 @@ const Header = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const { token, user } = useAuth();
 
   return (
     <>
@@ -145,27 +147,32 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Icons */}
-          <div className="flex items-center gap-4 text-sm text-gray-700">
-            <div className="hidden md:flex items-center gap-2">
-              <OrangeOutlineButton
-                label="Login"
-                onClick={() => navigate("/login")}
-              />
-              <OrangeOutlineButton
-                label="Sign Up"
-                onClick={() => navigate("/register")}
-              />
-            </div>
 
-            <div
+          {
+            token ? <div
               onClick={() => navigate("/account")}
               className="flex items-center gap-1 px-4 text-gray-600 text-[13px] cursor-pointer"
             >
               <User className="w-4 h-4 text-purple-500" />
-              <p>Your Account</p>
+              <p>{user?.firstName} {user?.lastName}</p>
+            </div> : <div className="flex items-center gap-4 text-sm text-gray-700">
+              <div className="hidden md:flex items-center gap-2">
+                <OrangeOutlineButton
+                  label="Login"
+                  onClick={() => navigate("/login")}
+                />
+                <OrangeOutlineButton
+                  label="Sign Up"
+                  onClick={() => navigate("/register")}
+                />
+              </div>
+
+
             </div>
-          </div>
+          }
+
+
+
         </div>
 
         {/* Bottom Info Bar */}

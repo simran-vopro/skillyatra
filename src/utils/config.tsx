@@ -1,8 +1,14 @@
-export const BASE_URL = "http://localhost:3000";
-export const IMAGE_URL = "http://localhost:3000/static";
+export const BASE_URL = "http://localhost:5000";
+export const IMAGE_URL = "http://localhost:5000/static";
 
 export const API_PATHS = {
-  CATEGORIES: `${BASE_URL}/api/categories/nested-categories`,
+  REGISTER: `${BASE_URL}/api/auth/signup`,
+  LOGIN: `${BASE_URL}/api/auth/login`,
+
+  COURSES: `${BASE_URL}/api/course`,
+  COURSE_DETAIL: `${BASE_URL}/api/course/detail`,
+
+  CATEGORIES: `${BASE_URL}/api/category`,
   PRODUCTS: `${BASE_URL}/api/products`,
   GET_PRODUCT: `${BASE_URL}/api/get-product`,
 

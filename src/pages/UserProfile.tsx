@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { LogOut, Settings, UserCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { logout } from "../features/auth/authSlice";
+import { useDispatch } from "react-redux";
 
 const CourseCard = ({ course }: { course: any }) => {
   const navigate = useNavigate();
+
   return (
     <div onClick={() => navigate("/course/1")} className="cursor-pointer border rounded-lg p-4 shadow-sm bg-white">
       <img
@@ -51,8 +54,9 @@ const mockCourses = [
 ];
 
 const UserProfile = () => {
-      const navigate = useNavigate();
-
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  
   const [activeTab, setActiveTab] = useState<
     "overview" | "courses" | "settings"
   >("overview");
@@ -75,7 +79,10 @@ const UserProfile = () => {
           </div>
         </div>
         <button
-          onClick={() => navigate("/")}
+          onClick={() => {
+            dispatch(logout());
+            navigate("/")
+          }}
           className="text-red-500 text-sm flex items-center gap-1 hover:underline"
         >
           <LogOut size={16} /> Logout
@@ -100,11 +107,10 @@ const UserProfile = () => {
           <button
             key={key}
             onClick={() => setActiveTab(key as any)}
-            className={`pb-2 text-sm font-medium border-b-2 ${
-              activeTab === key
+            className={`pb-2 text-sm font-medium border-b-2 ${activeTab === key
                 ? "border-purple-600 text-purple-600"
                 : "border-transparent text-gray-500 hover:text-purple-600"
-            } flex items-center gap-2`}
+              } flex items-center gap-2`}
           >
             {icon} {label}
           </button>

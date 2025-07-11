@@ -1,10 +1,72 @@
-// src/pages/LoginPage.tsx
-import { Mail, Lock } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import OrangeOutlineButton from "../components/Button/OrangeOutlineButton";
 import { useNavigate } from "react-router-dom";
+import { useAxios } from "../hooks/useAxios";
+import { API_PATHS } from "../utils/config";
+import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../app/hooks";
+import { useEffect, useState } from "react";
+import { loginSuccess } from "../features/auth/authSlice";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+
+  const dispatch = useDispatch<AppDispatch>();
+
+  interface UserResponseType {
+    token: string;
+    user: any;
+  }
+
+  const {
+    data,
+    error,
+    loading,
+    refetch: login,
+  } = useAxios<UserResponseType>({
+    method: "post",
+    url: API_PATHS.LOGIN,
+    body: {
+      phone,
+      password,
+      type: "user"
+    },
+    manual: true,
+    successMessage: "Logged in successfully!",
+    errorMessage: "", // let backend message be shown
+  });
+
+  const handleLogin = async () => {
+    if (!phone || !password) {
+      toast.error("Please enter both Phone number and Password");
+      return;
+    }
+
+    await login();
+  };
+
+  useEffect(() => {
+    if (data) {
+      const { token, user } = data;
+      const userId = user.userId;
+      dispatch(loginSuccess({ user, token, userId }));
+      navigate("/account");
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (error?.message) {
+      toast.error(error.message);
+    }
+  }, [error]);
+
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden lg:flex min-h-[700px]">
       {/* Left Image Section */}
@@ -21,20 +83,26 @@ const LoginPage = () => {
 
           <form className="space-y-6">
             <div className="space-y-1">
-              <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                Email <span className="text-red-500">*</span>
+              <label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                Phone <span className="text-red-500">*</span>
               </label>
               <div className="relative border-b border-gray-300 focus-within:border-purple-500">
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  placeholder="Enter your email"
-                  className="w-full bg-transparent focus:outline-none py-2 text-gray-700"
+                <PhoneInput
+                  country={"in"}
+                  value={phone.replace("+", "")}
+                  onChange={(value) => setPhone("+" + value)}
+                  inputClass="!bg-transparent !w-full !text-base !py-2 !focus:outline-none !border-none"
+                  containerClass="!w-full"
+                  buttonClass="!bg-transparent !border-none !shadow-none"
+                  dropdownStyle={{ borderRadius: "0.5rem", border: "none" }} // optional for dropdown
+                  inputProps={{
+                    required: true,
+                    name: "phone",
+                  }}
                 />
-                <Mail className="absolute right-0 top-2 text-gray-400 w-5 h-5" />
               </div>
             </div>
+
 
             <div className="space-y-1">
               <label htmlFor="password" className="text-sm font-medium text-gray-700">
@@ -43,17 +111,32 @@ const LoginPage = () => {
               <div className="relative border-b border-gray-300 focus-within:border-purple-500">
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   placeholder="Enter your password"
                   className="w-full bg-transparent focus:outline-none py-2 text-gray-700"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
-                <Lock className="absolute right-0 top-2 text-gray-400 w-5 h-5" />
+                <span
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute z-30 -translate-y-1/2 cursor-pointer right-0 top-1/2 text-gray-400"
+                >
+                  {showPassword ? (
+                    <Eye />
+                  ) : (
+                    <EyeOff />
+                  )}
+                </span>
               </div>
             </div>
 
             <div className="pt-6">
-              <OrangeOutlineButton label="Login" className="w-full" onClick={() => navigate("/verify")}/>
+              <OrangeOutlineButton
+                label={loading ? "Signing in..." : "Sign in"}
+                onClick={() => handleLogin()}
+                className="w-full"
+              />
             </div>
           </form>
         </div>
