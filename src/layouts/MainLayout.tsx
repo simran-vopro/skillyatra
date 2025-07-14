@@ -80,7 +80,7 @@ function MainLayout() {
             }
           />
           <Route
-            path="/course/:id"
+            path="/course"
             element={
               <PrivateRoute>
                 <CourseLearningPage />

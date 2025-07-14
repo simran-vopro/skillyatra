@@ -13,9 +13,10 @@ export interface PaginationModel {
 interface UseCourseListProps {
   searchQuery?: string;
   paginationModel?: PaginationModel;
+  urlPath?: string;
 }
 
-export const useCourseList = ({ searchQuery = "", paginationModel = {} }: UseCourseListProps = {}) => {
+export const useCourseList = ({ searchQuery = "", paginationModel = {}, urlPath }: UseCourseListProps = {}) => {
   const { page, pageSize } = paginationModel;
 
   const query = useMemo(() => {
@@ -29,7 +30,7 @@ export const useCourseList = ({ searchQuery = "", paginationModel = {} }: UseCou
   }, [searchQuery, page, pageSize]);
 
   const { data, metaData, loading, error, refetch } = useAxios<Course[]>({
-   url: `${API_PATHS.COURSES}?${query}`,
+   url: `${urlPath ? urlPath : API_PATHS.COURSES}?${query}`,
   });
 
   return {

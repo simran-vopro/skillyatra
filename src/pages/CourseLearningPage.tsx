@@ -1,87 +1,40 @@
 import { useState } from "react";
-import { PlayCircle, Clock, ChevronRight, Star } from "lucide-react";
+import { ChevronRight, Star } from "lucide-react";
 import QuizPage from "./QuizPage";
-
-const modules = [
-  {
-    title: "Introduction to NLP",
-    duration: "07:48",
-    chapters: [
-      {
-        title: "What is NLP?",
-        duration: "03:50",
-        content: {
-          text: `Welcome to the course! In this chapter, you’ll learn what NLP is and why it matters in today’s world.`,
-          videoUrl: "https://www.youtube.com/embed/tgbNymZ7vqY",
-          images: [
-            "https://t4.ftcdn.net/jpg/06/33/58/59/360_F_633585902_KexTjslrwzOwK7X83VYCVT85nF4sKxjF.jpg",
-          ],
-          activity:
-            "✅ Try writing your own sentence tokenizer using Python’s `nltk` library.",
-        },
-      },
-    ],
-    quiz: {
-      questions: 5,
-      time: "5 min",
-    },
-  },
-  {
-    title: "Why Learn NLP?",
-    duration: "05:59",
-    chapters: [
-      {
-        title: "Real-World Applications",
-        duration: "02:30",
-        content: {
-          text: `Natural Language Processing helps computers understand human language...`,
-          videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-          images: [],
-          activity:
-            "💡 Activity: List 3 applications of NLP you've used unknowingly in daily life.",
-        },
-      },
-    ],
-    quiz: {
-      questions: 4,
-      time: "4 min",
-    },
-  },
-  {
-    title: "Installing Python & Environment Setup",
-    duration: "06:00",
-    chapters: [
-      {
-        title: "Setup Instructions",
-        duration: "06:00",
-        content: {
-          text: `Before diving in, ensure Python and essential libraries are installed...`,
-          videoUrl: "",
-          images: [
-            "https://www.shutterstock.com/image-photo/hands-typing-on-laptop-programming-600nw-2480023489.jpg",
-          ],
-          activity:
-            "🛠️ Task: Install Python and VSCode. Take a screenshot after setup.",
-        },
-      },
-    ],
-    quiz: {
-      questions: 3,
-      time: "3 min",
-    },
-  },
-];
+import { useLocation } from "react-router-dom";
+import { useAxios } from "../hooks/useAxios";
+import { API_PATHS, IMAGE_URL } from "../utils/config";
+import type { Course } from "../types/course";
 
 const CourseLearningPage = () => {
+  const location = useLocation();
+  const { courseId } = location.state || {};
+
+  const { data: courseData, loading: courseDefaultLoading } = useAxios<Course>({
+    url: courseId ? `${API_PATHS.MY_COURSE_DETAIL}/${courseId}` : "",
+    method: "get",
+  });
+
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
-
   const [showQuiz, setShowQuiz] = useState(false);
 
-  const currentModule = modules[currentModuleIndex];
-  const currentChapter = currentModule.chapters[currentChapterIndex];
-  const totalModules = modules.length;
-  const progressPercent = ((currentModuleIndex + 1) / totalModules) * 100;
+  const pricingType = courseData?.pricingType?.toLowerCase();
+  const hasAccess = pricingType === "paid"; // Adjust this based on user logic
+
+  const currentModule = courseData?.modules[currentModuleIndex] || {
+    chapters: [],
+    quiz: {},
+  };
+  const currentChapter = currentModule.chapters[currentChapterIndex] || {
+    content: {},
+    activities: [],
+  };
+  const totalModules = courseData?.modules?.length || 0;
+  const progressPercent =
+    totalModules && totalModules > 0
+      ? ((currentModuleIndex + 1) / totalModules) * 100
+      : 0;
 
   const goToNextChapter = () => {
     if (currentChapterIndex < currentModule.chapters.length - 1) {
@@ -96,32 +49,40 @@ const CourseLearningPage = () => {
     if (currentChapterIndex > 0) {
       setCurrentChapterIndex(currentChapterIndex - 1);
     } else if (currentModuleIndex > 0) {
-      const prevModule = modules[currentModuleIndex - 1];
+      const prevModule = courseData?.modules[currentModuleIndex - 1] || {
+        chapters: [],
+      };
       setCurrentModuleIndex(currentModuleIndex - 1);
       setCurrentChapterIndex(prevModule.chapters.length - 1);
     }
   };
 
+  if (courseDefaultLoading || !courseData) {
+    return <div className="p-6 text-center">Loading course...</div>;
+  }
+
   return (
     <div className="container-padding min-h-screen">
-      {/* Header */}
       <div className="p-6 bg-blue-50 rounded-lg shadow my-6">
-        <p className="text-sm text-gray-500">
-          Development &gt; Data Science &gt; Python
-        </p>
+        <p className="text-sm text-gray-500">Development &gt; Communication</p>
         <h1 className="text-3xl font-bold text-gray-800 mt-2">
-          Data Science: Natural Language Processing (NLP) in Python
+          {courseData.title}
         </h1>
-        <p className="mt-2 text-gray-600">
-          Applications: spam detection, sentiment analysis, article spinners,
-          and more.
-        </p>
+        <p className="mt-2 text-gray-600">{courseData.description}</p>
         <div className="mt-4 text-sm text-gray-500 space-y-1">
           <p>
             Created by{" "}
-            <span className="text-purple-600 font-medium">Instructor Name</span>
+            <span className="text-purple-600 font-medium">
+              {courseData.instructor?.firstName}{" "}
+              {courseData.instructor?.lastName}
+            </span>
           </p>
-          <p>Last updated 6/2025 • English • English [Auto], German [Auto]</p>
+          <p>Last updated 07/2025 • {courseData.language}</p>
+          <p>
+            <span className="font-semibold">Type:</span>{" "}
+            {courseData.pricingType.charAt(0).toUpperCase() +
+              courseData.pricingType.slice(1)}
+          </p>
         </div>
         <div className="flex items-center gap-4 mt-4 text-sm text-gray-700">
           <div className="flex items-center gap-1">
@@ -143,13 +104,12 @@ const CourseLearningPage = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4">
-        {/* Sidebar */}
         <aside className="lg:col-span-1 bg-gray-100 p-4 overflow-y-auto">
           <h2 className="text-xl font-bold mb-4 text-purple-700">
             Course Modules
           </h2>
           <ul className="space-y-4">
-            {modules.map((mod, mIndex) => (
+            {courseData.modules.map((mod, mIndex) => (
               <li key={mIndex}>
                 <div
                   onClick={() => {
@@ -162,11 +122,7 @@ const CourseLearningPage = () => {
                       : "hover:bg-gray-100 text-gray-700"
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <PlayCircle className="w-4 h-4" />
-                    {mod.title}
-                  </div>
-                  <span className="text-xs text-gray-500">{mod.duration}</span>
+                  <div className="flex items-center gap-2">\ {mod.name}</div>
                 </div>
                 <ul className="ml-5 mt-2 space-y-1">
                   {mod.chapters.map((chapter, cIndex) => (
@@ -175,6 +131,7 @@ const CourseLearningPage = () => {
                       onClick={() => {
                         setCurrentModuleIndex(mIndex);
                         setCurrentChapterIndex(cIndex);
+                        setShowQuiz(false);
                       }}
                       className={`text-sm cursor-pointer p-1 rounded hover:bg-gray-200 ${
                         mIndex === currentModuleIndex &&
@@ -186,107 +143,174 @@ const CourseLearningPage = () => {
                       {chapter.title}
                     </li>
                   ))}
-
-                  {/* Start Quiz Button - Below chapters */}
-                  <li className="mt-3">
-                    <button
-                      onClick={() => {
-                        setCurrentModuleIndex(mIndex);
-                        setCurrentChapterIndex(mod.chapters.length - 1);
-                        setShowQuiz(true);
-                        // You could also trigger quiz view here in the future
-                      }}
-                      className="text-left w-full text-sm bg-orange-100 text-orange-700 hover:bg-orange-200 px-3 py-1 rounded font-medium"
-                    >
-                      🧠 Start Quiz ({mod.quiz.questions} Qs)
-                    </button>
-                  </li>
                 </ul>
               </li>
             ))}
           </ul>
         </aside>
 
-        {/* Main Content */}
         <main className="lg:col-span-3 p-6 overflow-y-auto">
-          <h1 className="text-2xl font-bold mb-2 text-gray-800">
-            {currentChapter.title}
-          </h1>
-          <p className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-            <Clock className="w-4 h-4" /> Duration: {currentChapter.duration}
-          </p>
-
-          {showQuiz ? (
-            <QuizPage />
+          {!hasAccess ? (
+            <div className="text-center bg-red-50 border border-red-300 p-6 rounded shadow text-red-700">
+              <h2 className="text-xl font-bold mb-2">🔒 Course Locked</h2>
+              <p className="mb-4">
+                This course requires a purchase to access. Please buy the course
+                to continue learning.
+              </p>
+              <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                🔐 Upgrade Now
+              </button>
+            </div>
           ) : (
             <>
-              {currentChapter.content.videoUrl && (
-                <div className="relative pb-[56.25%] mb-6">
-                  <iframe
-                    className="absolute top-0 left-0 w-full h-full rounded-md"
-                    src={currentChapter.content.videoUrl}
-                    title="Chapter Video"
-                    allowFullScreen
-                  ></iframe>
-                </div>
-              )}
+              <h1 className="text-2xl font-bold mb-2 text-gray-800">
+                {currentChapter.title}
+              </h1>
 
-              <p className="text-lg text-gray-700 leading-7 mb-6 whitespace-pre-line">
-                {currentChapter.content.text}
-              </p>
+              {showQuiz ? (
+                <QuizPage />
+              ) : (
+                <>
+                  {currentChapter.video && (
+                    <div className="relative pb-[56.25%] mb-6">
+                      <iframe
+                        className="absolute top-0 left-0 w-full h-full rounded-md"
+                        src={currentChapter.video}
+                        title="Chapter Video"
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  )}
 
-              {currentChapter.content.images.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                  {currentChapter.content.images.map((img, i) => (
-                    <img
-                      key={i}
-                      src={img}
-                      alt="Module visual"
-                      className="rounded-md shadow border"
+                  {(currentChapter.audio || currentChapter.image) && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                      {/* Audio Section */}
+                      {currentChapter.audio && (
+                        <div className="flex items-center justify-center rounded-md shadow border p-4 bg-white h-full min-h-[200px]">
+                          <audio controls className="w-full max-w-xs">
+                            <source
+                              src={IMAGE_URL + currentChapter.audio}
+                              type="audio/mpeg"
+                            />
+                            Your browser does not support the audio element.
+                          </audio>
+                        </div>
+                      )}
+
+                      {/* Image Section */}
+                      {currentChapter.image && (
+                        <div className="rounded-md shadow border overflow-hidden h-full min-h-[200px]">
+                          <img
+                            src={IMAGE_URL + currentChapter.image}
+                            alt="Chapter"
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {currentChapter.description && (
+                    <p
+                      className="text-lg text-gray-700 leading-7 mb-6 whitespace-pre-line"
+                      dangerouslySetInnerHTML={{
+                        __html: currentChapter.description,
+                      }}
                     />
-                  ))}
-                </div>
+                  )}
+
+                  {currentChapter.activities?.length > 0 && (
+                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md text-sm text-yellow-800 shadow-sm space-y-4">
+                      <p className="font-semibold text-lg text-yellow-800">
+                        📌 Activity
+                      </p>
+                      {currentChapter.activities.map((activity, idx) => (
+                        <div key={idx} className="space-y-3">
+                          {activity.mcq?.length > 0 && (
+                            <div>
+                              <p className="font-semibold text-yellow-700">
+                                📝 Multiple Choice Questions:
+                              </p>
+                              <ul className="pl-5 list-disc space-y-1">
+                                {activity.mcq.map((q, i) => (
+                                  <li key={i}>
+                                    <p>{q.question}</p>
+                                    <ul className="pl-4 list-decimal text-gray-700">
+                                      {q.options.map((opt, j) => (
+                                        <li key={j}>{opt.name}</li>
+                                      ))}
+                                    </ul>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {activity.yesno?.length > 0 && (
+                            <div>
+                              <p className="font-semibold text-yellow-700">
+                                ✔️ Yes/No Questions:
+                              </p>
+                              <ul className="pl-5 list-disc space-y-1">
+                                {activity.yesno.map((q, i) => (
+                                  <li key={i}>{q.question}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {activity.blank?.length > 0 && (
+                            <div>
+                              <p className="font-semibold text-yellow-700">
+                                ✏️ Fill in the Blanks:
+                              </p>
+                              <ul className="pl-5 list-disc space-y-1">
+                                {activity.blank.map((q, i) => (
+                                  <li key={i}>
+                                    {q.question.replace("______", "______")}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
 
-              {currentChapter.content.activity && (
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md text-sm text-yellow-800 shadow-sm">
-                  <p className="font-semibold mb-1">📌 Activity</p>
-                  <p>{currentChapter.content.activity}</p>
-                </div>
-              )}
+              <div className="flex justify-between items-center mt-10">
+                <button
+                  disabled={
+                    currentModuleIndex === 0 && currentChapterIndex === 0
+                  }
+                  onClick={goToPrevChapter}
+                  className="px-4 py-2 border rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-40"
+                >
+                  ← Previous
+                </button>
+
+                {/* {currentChapterIndex === currentModule.chapters.length - 1 && (
+                  <button
+                    onClick={() => setShowQuiz(true)}
+                    className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm font-medium hover:bg-orange-600 transition"
+                  >
+                    🧠 Start Quiz ({currentModule.quiz?.questions || 0} Qs)
+                  </button>
+                )} */}
+
+                <button
+                  onClick={goToNextChapter}
+                  disabled={
+                    currentModuleIndex === courseData.modules.length - 1 &&
+                    currentChapterIndex === currentModule.chapters.length - 1
+                  }
+                  className="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 transition disabled:opacity-40"
+                >
+                  Next <ChevronRight className="w-4 h-4 inline ml-1" />
+                </button>
+              </div>
             </>
           )}
-
-          <div className="flex justify-between items-center mt-10">
-            <button
-              disabled={currentModuleIndex === 0 && currentChapterIndex === 0}
-              onClick={goToPrevChapter}
-              className="px-4 py-2 border rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-40"
-            >
-              ← Previous
-            </button>
-
-            {currentChapterIndex === currentModule.chapters.length - 1 && (
-              <button
-                onClick={() => setShowQuiz(true)}
-                className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm font-medium hover:bg-orange-600 transition"
-              >
-                🧠 Start Quiz ({currentModule.quiz.questions} Qs,{" "}
-                {currentModule.quiz.time})
-              </button>
-            )}
-
-            <button
-              onClick={goToNextChapter}
-              disabled={
-                currentModuleIndex === modules.length - 1 &&
-                currentChapterIndex === currentModule.chapters.length - 1
-              }
-              className="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 transition disabled:opacity-40"
-            >
-              Next <ChevronRight className="w-4 h-4 inline ml-1" />
-            </button>
-          </div>
         </main>
       </div>
     </div>

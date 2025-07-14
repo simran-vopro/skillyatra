@@ -10,10 +10,6 @@ import moment from "moment";
 const AccordionItem = ({ section, lectures, items }: any) => {
   const [open, setOpen] = useState(false);
 
-  // const handleQuizNavigation = () => {
-  //   console.log("Navigating to quiz for:", section);
-  //   navigate("/quiz/1");
-  // };
 
   return (
     <div className="border rounded-lg overflow-hidden mb-4">
@@ -53,8 +49,6 @@ const AccordionItem = ({ section, lectures, items }: any) => {
 };
 
 const SingleCoursePage = () => {
-
-
   const location = useLocation();
   const { courseId } = location.state || {};
 

@@ -3,26 +3,31 @@ import { LogOut, Settings, UserCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../features/auth/authSlice";
 import { useDispatch } from "react-redux";
+import { useCourseList } from "../hooks/userCourseList";
+import { API_PATHS, IMAGE_URL } from "../utils/config";
+import type { Course } from "../types/course";
 
-const CourseCard = ({ course }: { course: any }) => {
+const CourseCard = ({ course }: { course: Course }) => {
   const navigate = useNavigate();
 
   return (
-    <div onClick={() => navigate("/course/1")} className="cursor-pointer border rounded-lg p-4 shadow-sm bg-white">
+    <div
+      onClick={() => navigate("/course", { state: { courseId: course._id } })}
+      className="cursor-pointer border rounded-lg p-4 shadow-sm bg-white"
+    >
       <img
-        src={course.image}
+        src={IMAGE_URL + course.thumbnail}
         alt={course.title}
         className="h-40 w-full object-cover rounded mb-4"
       />
       <h3 className="text-lg font-semibold">{course.title}</h3>
-      <p className="text-sm text-gray-500">Instructor: {course.instructor}</p>
+      <p className="text-sm text-gray-500">
+        Instructor: {course.instructor.firstName} {course.instructor.lastName}
+      </p>
       <div className="mt-2 w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-        <div
-          className="bg-purple-600 h-full"
-          style={{ width: `${course.progress}%` }}
-        ></div>
+        <div className="bg-purple-600 h-full" style={{ width: `10%` }}></div>
       </div>
-      <p className="text-xs text-gray-500 mt-1">{course.progress}% Complete</p>
+      <p className="text-xs text-gray-500 mt-1">10% Complete</p>
     </div>
   );
 };
@@ -34,29 +39,16 @@ const mockUser = {
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQn9zilY2Yu2hc19pDZFxgWDTUDy5DId7ITqA&s", // Use any placeholder or actual image
 };
 
-const mockCourses = [
-  {
-    id: 1,
-    title: "React for Beginners",
-    instructor: "John Doe",
-    progress: 80,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPB1fsoQykBFtGM19eymE52pQ_pCP3x1sK_dqKi_yO8TKJGhXVg3kdtYrn_9jqobit-BA&usqp=CAU", // Replace with actual image paths
-  },
-  {
-    id: 2,
-    title: "Mastering JavaScript",
-    instructor: "Jane Smith",
-    progress: 40,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-IEJfQG9Ne8SbMuqjdZ73212jXY9hYLG63g&s",
-  },
-];
-
 const UserProfile = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
+
+  const { courseData: myCourses } = useCourseList({
+    urlPath: API_PATHS.MY_COURSES,
+  });
+
+  console.log("My Courses:", myCourses);
+
   const [activeTab, setActiveTab] = useState<
     "overview" | "courses" | "settings"
   >("overview");
@@ -81,7 +73,7 @@ const UserProfile = () => {
         <button
           onClick={() => {
             dispatch(logout());
-            navigate("/")
+            navigate("/");
           }}
           className="text-red-500 text-sm flex items-center gap-1 hover:underline"
         >
@@ -107,10 +99,11 @@ const UserProfile = () => {
           <button
             key={key}
             onClick={() => setActiveTab(key as any)}
-            className={`pb-2 text-sm font-medium border-b-2 ${activeTab === key
+            className={`pb-2 text-sm font-medium border-b-2 ${
+              activeTab === key
                 ? "border-purple-600 text-purple-600"
                 : "border-transparent text-gray-500 hover:text-purple-600"
-              } flex items-center gap-2`}
+            } flex items-center gap-2`}
           >
             {icon} {label}
           </button>
@@ -122,14 +115,14 @@ const UserProfile = () => {
         {activeTab === "overview" && (
           <div className="text-gray-700 space-y-2">
             <p>Welcome back, {mockUser.name}! 👋</p>
-            <p>You’ve enrolled in {mockCourses.length} course(s).</p>
+            <p>You’ve enrolled in {myCourses?.length} course(s).</p>
           </div>
         )}
 
         {activeTab === "courses" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockCourses.map((course) => (
-              <CourseCard key={course.id} course={course} />
+            {myCourses.map((course) => (
+              <CourseCard key={course._id} course={course} />
             ))}
           </div>
         )}
